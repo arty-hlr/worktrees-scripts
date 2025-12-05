@@ -9,7 +9,7 @@ VERBOSE=
 function usage {
     cat <<"EOF"
 Usage: wtremove [-vh] WORKTREE_NAME
-Removes and prunes a worktree and its branch.
+Removes a worktree and its branch.
 
 FLAGS:
   -h, --help    Print this help
@@ -36,43 +36,25 @@ function warn {
     printf '%b%s%b\n' "$YELLOW" "$1" "$CLEAR"
 }
 
-# rmtree <dir> will remove a worktree's directory, then prune the worktree list
+# rmtree <dir> will remove a worktree
 # and delete the branch
 function rmtree {
     if [ -n "$VERBOSE" ]; then
         set -x
     fi
 
-    # verify that the first argument is a directory that exists, that we want
-    # to remove
     if [ -z "$1" ]; then
         die "You must provide a directory name that is a worktree to remove"
     fi
+    worktreename="$1"
 
-    is_worktree=$(git rev-parse --is-inside-work-tree)
-    if $is_worktree; then        
-        parent_dir=".."  
-    else        
-        parent_dir="."
+    warn "removing $1"
+
+    branchname=$(git worktree list | grep "$worktreename" | sed 's/.*\[\(.*\)\]/\1/')
+    if [ -z "$branchname" ]; then
+        err "Worktree $worktreename doesn't exist"
     fi
-
-    # for each argument, delete the directory and remove the worktree
-    while [ -n "$1" ]; do
-        final_dir="$parent_dir/$1"
-        if [ ! -d "$final_dir" ]; then
-            err "Unable to find directory $final_dir, skipping"
-            shift
-            continue
-        fi
-
-        warn "removing $1"       
-
-        branch_name=${1//_//}        
-        rm -rf "$final_dir"
-        git worktree prune && git branch -D "$branch_name"
-
-        shift
-    done
+    git worktree remove "$worktreename" && git branch -D "$branchname"
 }
 
 while true; do
@@ -82,10 +64,6 @@ while true; do
             ;;
         -v | --verbose)
             VERBOSE=true
-            shift
-            ;;
-        -m | --main-branch)
-            MAIN_BRANCH=$2
             shift
             ;;
         *)
