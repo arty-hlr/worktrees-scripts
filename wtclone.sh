@@ -72,6 +72,9 @@ echo "gitdir: ./.bare" > .git
 # Explicitly sets the remote origin fetch so we can fetch remote branches
 git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 
+# enables auto setup remote for push
+git config push.autoSetupRemote true
+
 # Gets all branches from origin
 git fetch origin
 
