@@ -46,7 +46,7 @@ function rmtree {
     if [ -z "$1" ]; then
         die "You must provide a directory name that is a worktree to remove"
     fi
-    worktreename="$1"
+    worktreename="${1%/}"
 
     warn "removing $1"
 
