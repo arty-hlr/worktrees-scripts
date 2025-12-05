@@ -13,17 +13,22 @@ echo $1
 
 function usage {
     cat <<EOF
-Usage: wtadd [-vh] WORKTREE_NAME [BRANCH_NAME] [BASE_NAME]
-Create a git worktree named WORKTREE_NAME based on BRANCH_NAME. If the BRANCH_NAME doesn't exist locally or remotely, it will be created, optionally from a BASE_NAME branch.
-If no BRANCH_NAME is provided, it will use WORKTREE_NAME as BRANCH_NAME.
-If no BASE_NAME is provided, master/main will be used.
+Usage: wtadd [-vh] [--base BASE_BRANCH] WORKTREE_NAME [BRANCH_NAME]
+Create a git worktree named WORKTREE_NAME based on BRANCH_NAME. If the BRANCH_NAME doesn't exist locally or remotely, it will be created,
+optionally from a BASE_BRANCH (default: master/main). You can explicitly use --base to set it.
 
 Will copy over any .env, .envrc, .tool-versions, or mise.toml files to the 
 new worktree as well as node_modules.
 
+Examples:
+  git wtadd myfeature                 # Creates worktree and branch 'myfeature' off master/main
+  git wtadd myfeature feature-branch  # Creates worktree 'myfeature' for 'feature-branch'
+  git wtadd myfeature --base develop  # Creates worktree and branch 'myfeature' off develop
+
 FLAGS:
   -h, --help    Print this help
-  -v, --verbose Verbose mode   
+  -v, --verbose Verbose mode
+  -b, --base    Specify base branch   
 
 EOF
     kill -INT $$
@@ -81,7 +86,7 @@ function _worktree {
     else
         default=main
     fi
-    basename="${3:-$default}"
+    basename="${BASE_NAME:-$default}"
 
     # Replace slashes with underscores. If there's no slash, dirname will equal
     # branchname. So "alu/something-other" becomes "alu_something-other", but
@@ -185,6 +190,10 @@ while true; do
         -v | --verbose)
             VERBOSE=true
             shift
+            ;;
+        --base | -b) 
+            BASE_NAME="$2"
+            shift 2
             ;;
         *)
             break

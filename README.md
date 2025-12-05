@@ -24,9 +24,9 @@ This will:
 - create a directory named destination (defaults to the repo name)
 - clone the repo as a bare repo into `.bare`
 
-`git wtadd <worktree-name> [branch] [base]`
+`git wtadd [--base BASE_BRANCH] <worktree-name> [branch]`
 
-Create a git worktree named `worktree-name` for `branch`, optionally based on `base`.
+Create a git worktree named `worktree-name` for `branch`, optionally based on `base` instead of master/main.
 
 Also copies over untracked convenience files to the new worktree: `.env`, `.envrc`, `.tool-versions`, `mise.toml`, and the root `node_modules` directory. On macOS or *BSD, Copy-on-Write is used when available to save space.
 
