@@ -13,9 +13,10 @@ echo $1
 
 function usage {
     cat <<EOF
-Usage: wtadd [-vh] WORKTREE_NAME [BRANCH_NAME]
-Create a git worktree named WORKTREE_NAME based on BRANCH_NAME.
-If no BRANCH_NAME is provided, it will default to the current branch.
+Usage: wtadd [-vh] WORKTREE_NAME [BRANCH_NAME] [BASE_NAME]
+Create a git worktree named WORKTREE_NAME based on BRANCH_NAME. If the BRANCH_NAME doesn't exist locally or remotely, it will be created, optionally from a BASE_NAME branch.
+If no BRANCH_NAME is provided, it will use WORKTREE_NAME as BRANCH_NAME.
+If no BASE_NAME is provided, master/main will be used.
 
 Will copy over any .env, .envrc, .tool-versions, or mise.toml files to the 
 new worktree as well as node_modules.
@@ -73,13 +74,20 @@ function _worktree {
     if [ -n "$VERBOSE" ]; then
         set -x
     fi
-    branchname="$1"
+    worktreename="$1"
+    branchname="${2:-$worktreename}"
+    if git for-each-ref --format='%(refname:lstrip=3)' refs/remotes/origin | grep -E "^master$" > /dev/null 2>&1; then
+        default=master
+    else
+        default=main
+    fi
+    basename="${3:-$default}"
 
     # Replace slashes with underscores. If there's no slash, dirname will equal
     # branchname. So "alu/something-other" becomes "alu_something-other", but
     # "quick-fix" stays unchanged
     # https://www.tldp.org/LDP/abs/html/parameter-substitution.html
-    dirname=${branchname//\//_}
+    dirname=${worktreename//\//_}
     
     is_worktree=$(git rev-parse --is-inside-work-tree)
     if $is_worktree; then        
@@ -88,15 +96,6 @@ function _worktree {
         parent_dir="."
     fi
 
-    # if the branch name already exists, we want to check it out. Otherwise,
-    # create a new branch. I'm sure there's probably a way to do that in one
-    # command, but I'm done fiddling with git at this point
-    #
-    # As far as I can tell, we have to check locally and remotely separately if
-    # we want to be accurate. See https://stackoverflow.com/a/75040377 for the
-    # reasoning here. Also this has some caveats, but probably works well
-    # enough :shrug:
-    #
     # if the branch exists locally:
     if git for-each-ref --format='%(refname:lstrip=2)' refs/heads | grep -E "^$branchname$" > /dev/null 2>&1; then
         if ! git worktree add "$parent_dir/$dirname" "$branchname"; then
@@ -104,23 +103,26 @@ function _worktree {
         fi
     # if the branch exists on a remote:
     elif git for-each-ref --format='%(refname:lstrip=3)' refs/remotes/origin | grep -E "^$branchname$" > /dev/null 2>&1; then
-        if ! git worktree add "$parent_dir/$dirname" "$branchname"; then
+        if ! git worktree add --track -b "$branchname" "$parent_dir/$dirname" "origin/$branchname"; then
             die "failed to create git worktree $branchname"
         fi
     else
-        # otherwise, create a new branch
+        # otherwise, create a new branch based on the base branch
+        if ! git branch "$basename" "origin/$basename"; then
+            die "failed to pull local branch from origin/$basename"
+        fi
+        if ! git branch "$branchname" "$basename"; then
+            die "failed to create new branch from local branch $basename"
+        fi
         if ! git worktree add -b "$branchname" "$parent_dir/$dirname"; then
             die "failed to create git worktree $branchname"
+        fi
+        if ! git branch -D "$basename"; then
+            die "failed to delete local branch $basename"
         fi
     fi
 
     # Find untracked files that we want to copy to the new worktree
-
-    # packages in node_modules packages can have sub-node-modules packages, and
-    # we don't want to copy them; only copy the root node_modules directory
-    if [ -d "node_modules" ]; then
-      cp_cow node_modules "$parent_dir/$dirname"/node_modules
-    fi
 
     # this will fail for any files with \n in their names. don't do that.
     IFS=$'\n'
