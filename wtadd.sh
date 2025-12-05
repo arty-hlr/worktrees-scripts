@@ -145,21 +145,19 @@ function _worktree {
     platform=`uname`
     if $is_worktree; then
         copy_source="."
-    else
-        copy_source=./$(git rev-parse --abbrev-ref HEAD)
+        if [ "$platform" = "Darwin" ]; then
+            files_to_copy=( $(find -E $copy_source -not -path '*node_modules*' -and \
+                    -iregex '.*\/\.(envrc|env|env.local|tool-versions|mise.toml)' ) )
+        else
+            files_to_copy=( $(find $copy_source -not -path '*node_modules*' -and \
+                    -regextype posix-extended -iregex '.*\/\.(envrc|env|env.local|tool-versions|mise.toml)' ) )
+        fi
+    
+        for f in "${files_to_copy[@]}"; do
+          target_path="${f#$copy_source/}"
+          cp_cow "$f" "$parent_dir/$dirname/$target_path"
+        done
     fi
-    if [ "$platform" = "Darwin" ]; then
-        files_to_copy=( $(find -E $copy_source -not -path '*node_modules*' -and \
-                -iregex '.*\/\.(envrc|env|env.local|tool-versions|mise.toml)' ) )
-    else
-        files_to_copy=( $(find $copy_source -not -path '*node_modules*' -and \
-                -regextype posix-extended -iregex '.*\/\.(envrc|env|env.local|tool-versions|mise.toml)' ) )
-    fi
-
-    for f in "${files_to_copy[@]}"; do
-      target_path="${f#$copy_source/}"
-      cp_cow "$f" "$parent_dir/$dirname/$target_path"
-    done
 
     # return the shell to normal splitting mode
     unset IFS
