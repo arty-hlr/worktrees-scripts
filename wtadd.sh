@@ -106,15 +106,15 @@ function _worktree {
         if ! git worktree add --track -b "$branchname" "$parent_dir/$dirname" "origin/$branchname"; then
             die "failed to create git worktree $branchname"
         fi
+    # otherwise, create a new branch based on the base branch
     else
-        # otherwise, create a new branch based on the base branch
         if ! git branch "$basename" "origin/$basename"; then
             die "failed to pull local branch from origin/$basename"
         fi
         if ! git branch "$branchname" "$basename"; then
             die "failed to create new branch from local branch $basename"
         fi
-        if ! git worktree add -b "$branchname" "$parent_dir/$dirname"; then
+        if ! git worktree add "$parent_dir/$dirname" "$branchname"; then
             die "failed to create git worktree $branchname"
         fi
         if ! git branch -D "$basename"; then
