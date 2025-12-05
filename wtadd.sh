@@ -9,8 +9,6 @@ YELLOW="\033[0;33m"
 CLEAR="\033[0m"
 VERBOSE=
 
-echo $1
-
 function usage {
     cat <<EOF
 Usage: wtadd [-vh] [--base BASE_BRANCH] WORKTREE_NAME [BRANCH_NAME]
@@ -80,6 +78,7 @@ function _worktree {
         set -x
     fi
     worktreename="$1"
+    echo "$worktreename"
     branchname="${2:-$worktreename}"
     if git for-each-ref --format='%(refname:lstrip=3)' refs/remotes/origin | grep -E "^master$" > /dev/null 2>&1; then
         default=master
