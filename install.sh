@@ -2,7 +2,7 @@
 SCRIPTS=("wtadd.sh" "wtremove.sh" "wtclone.sh" "wtlist.sh")
 
 # Define the repository URL and the destination directory
-REPO_URL="https://github.com/tomups/worktrees-scripts.git"
+REPO_URL="https://github.com/arty-hlr/worktrees-scripts"
 DEST_DIR="$HOME/.local/bin"
 
 # Create the destination directory if it does not exist
