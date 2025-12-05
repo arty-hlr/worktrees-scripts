@@ -50,7 +50,7 @@ function rmtree {
 
     warn "removing $1"
 
-    branchname=$(git worktree list | grep "$worktreename" | sed 's/.*\[\(.*\)\]/\1/')
+    branchname=$(git worktree list | grep "/$worktreename\s" | sed 's/.*\[\(.*\)\]/\1/')
     if [ -z "$branchname" ]; then
         err "Worktree $worktreename doesn't exist"
     fi
