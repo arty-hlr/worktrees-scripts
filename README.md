@@ -11,7 +11,7 @@ They can only be used with a repo cloned with `git wtclone`.
 Run the following command in your terminal to install the scripts and add them as alias to gitconfig:
 
 ```bash
-bash <(curl -s https://github.com/arty-hlr/worktrees-scripts/main/install.sh)
+bash <(curl -s https://github.com/arty-hlr/worktrees-scripts/raw/refs/heads/main/install.sh)
 ```
 
 ## Usage
