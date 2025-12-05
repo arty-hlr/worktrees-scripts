@@ -48,7 +48,7 @@ function rmtree {
     fi
     worktreename="${1%/}"
 
-    warn "removing $1"
+    warn "removing $worktreename"
 
     branchname=$(git worktree list | grep "/$worktreename\s" | sed 's/.*\[\(.*\)\]/\1/')
     if [ -z "$branchname" ]; then
