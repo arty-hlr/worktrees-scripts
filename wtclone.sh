@@ -75,9 +75,5 @@ git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 # Gets all branches from origin
 git fetch origin
 
-# Add worktree for main branch
-main_branch=$(git branch --show-current)
-git worktree add "$main_branch"
-
 printf "%bCloned repo to %s%b\n" "$GREEN" "$name" "$CLEAR"
 
