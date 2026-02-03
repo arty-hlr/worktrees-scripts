@@ -77,6 +77,10 @@ function _worktree {
     if [ -n "$VERBOSE" ]; then
         set -x
     fi
+
+    # fetch remotes and prune deleted branches
+    git fetch -p
+    
     worktreename="$1"
     echo "$worktreename"
     branchname="${2:-$worktreename}"
